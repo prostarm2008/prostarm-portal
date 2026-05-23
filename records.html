@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prostarm - Master Records</title>
+    <link rel="icon" type="png" href="Prostarm logo.png">
+    
+    <script>
+        if (sessionStorage.getItem('isLoggedIn') !== 'true' && localStorage.getItem('isLoggedIn') !== 'true') {
+            window.location.href = "login.html";
+        }
+    </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f6f9; padding: 30px 20px; color: #334155; }
+        
+        .back-btn { display: inline-flex; align-items: center; padding: 10px 15px; background: #ffffff; color: #475569; text-decoration: none; border-radius: 8px; margin-bottom: 20px; border: 1px solid #cbd5e1; font-weight: 600; font-size: 0.9rem; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .back-btn:hover { background: #f8fafc; border-color: #94a3b8; color: #1e293b; transform: translateX(-3px); }
+
+        .card { background: #fff; padding: 25px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.04); margin: 0 auto; border-top: 4px solid #4f46e5; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
+        .card h2 { color: #1e293b; font-size: 1.5rem; }
+
+        /* Filter Controls */
+        .controls-wrapper { display: flex; gap: 15px; flex-wrap: wrap; align-items: center; background: #f8fafc; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #e2e8f0; }
+        .control-group { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 200px; }
+        .control-group label { font-size: 0.8rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        input, select { padding: 10px 15px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; font-size: 0.95rem; color: #334155; }
+        input:focus, select:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15); }
+        
+        .export-btn { padding: 12px 20px; background: #10b981; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+        .export-btn:hover { background: #059669; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25); }
+
+        /* Table Styling */
+        .table-container { overflow-x: auto; border-radius: 8px; border: 1px solid #e2e8f0; max-height: 600px; overflow-y: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; white-space: nowrap; }
+        thead { position: sticky; top: 0; background: #f8fafc; z-index: 1; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { color: #475569; font-weight: 600; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.5px; }
+        tr:hover td { background: #f1f5f9; }
+
+        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+        .status-repaired { background: #dcfce7; color: #166534; }
+        .status-not-repairable { background: #fee2e2; color: #991b1b; }
+        
+        #loading-indicator { text-align: center; padding: 20px; font-weight: bold; color: #4f46e5; }
+    </style>
+</head>
+<body>
+
+
+
+<a href="home.html" class="back-btn">⬅ Back to Home</a>
+
+<div class="card">
+    <div class="card-header">
+        <h2>📑 Master Records</h2>
+        <button id="exportBtn" class="export-btn" onclick="exportTableToExcel()">
+            <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M5.884 6.68a.5.5 0 1 0-.768.64L7.349 10l-2.233 2.68a.5.5 0 0 0 .768.64L8 10.781l2.116 2.54a.5.5 0 0 0 .768-.641L8.651 10l2.233-2.68a.5.5 0 0 0-.768-.64L8 9.219l-2.116-2.54z"/><path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5v2z"/></svg>
+            Export to Excel
+        </button>
+    </div>
+
+    <div class="controls-wrapper">
+        <div class="control-group">
+            <label>Global Search</label>
+            <input type="text" id="searchInput" placeholder="Search serial, name, etc...">
+        </div>
+        <div class="control-group">
+            <label>Filter by Status</label>
+            <select id="statusFilter">
+                <option value="All">All Statuses</option>
+                <option value="Repaired">Repaired</option>
+                <option value="Not Repairable">Not Repairable</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Filter by Item Type</label>
+            <select id="typeFilter">
+                <option value="All">All Items</option>
+                <option value="UPS">UPS</option>
+                <option value="IT">IT</option>
+                <option value="Servo">Servo</option>
+                <option value="Spare Part">Spare Part</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="loading-indicator">⏳ Fetching live data from cloud...</div>
+
+    <div class="table-container">
+        <table id="recordsTable">
+            <thead>
+                <tr>
+                    <th>Entry Date</th>
+                    <th>Engineer Name</th>
+                    <th>Item Type</th>
+                    <th>Module</th>
+                    <th>Capacity</th>
+                    <th>Serial Number</th>
+                    <th>Phase</th>
+                    <th>Status</th>
+                    <th>Completion Date</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    let allRecords = [];
+    const currentUser = sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser');
+    const currentRole = sessionStorage.getItem('currentRole') || localStorage.getItem('currentRole');
+	
+	// Hide Export button if user is an Engineer
+    document.addEventListener("DOMContentLoaded", function() {
+        if (currentRole === 'Engineer') {
+            document.getElementById('exportBtn').style.display = 'none';
+        }
+    });
+    // 1. Fetch Live Data
+    async function fetchLiveRecords() {
+        const getFlowUrl = "https://default000090a2d8654861ba6937e8e47451.72.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/94e132b6131146539feb3a07dfe29265/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=qzTfkNnWY9w8Yec-N4OBqm5QZdKMPTQL1M7EHiCfAdw";
+        
+        try {
+            const response = await fetch(getFlowUrl, { method: 'GET' });
+            if (!response.ok) throw new Error("Network error");
+            
+            let rawData = await response.json();
+            
+            // Security: If role is Engineer, only show their own records
+            if (currentRole === 'Engineer') {
+                allRecords = rawData.filter(row => row["Engineer Name"] === currentUser);
+            } else {
+                allRecords = rawData;
+            }
+
+            document.getElementById('loading-indicator').style.display = 'none';
+            renderTable(allRecords);
+            
+        } catch (error) {
+            console.error("Failed to load live stats:", error);
+            document.getElementById('loading-indicator').innerText = "❌ Failed to load live data. Please refresh.";
+            document.getElementById('loading-indicator').style.color = "red";
+        }
+    }
+
+    // 2. Render Table
+    function renderTable(data) {
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
+
+        if (data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px;">No matching records found.</td></tr>';
+            return;
+        }
+
+        data.forEach(r => {
+            // Clean up dates for display
+            let entryDate = (r["Entry Date"] || "").replace('T', ' ').substring(0, 16);
+            let compDate = (r["Repair Completion Date"] || "").split('T')[0];
+
+            let statusClass = r["Repair Status"] === "Repaired" ? "status-repaired" : "status-not-repairable";
+            let statusHtml = `<span class="status-badge ${statusClass}">${r["Repair Status"] || ""}</span>`;
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${entryDate}</td>
+                <td>${r["Engineer Name"] || ""}</td>
+                <td>${r["Item Type"] || ""}</td>
+                <td>${r["Module"] || ""}</td>
+                <td>${r["System Capacity (KVA)"] || ""}</td>
+                <td><strong>${r["System Serial Number"] || ""}</strong></td>
+                <td>${r["Electrical Phase"] || ""}</td>
+                <td>${statusHtml}</td>
+                <td>${compDate}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // 3. Filter Logic
+    function applyFilters() {
+        const searchText = document.getElementById('searchInput').value.toLowerCase();
+        const statusFilter = document.getElementById('statusFilter').value;
+        const typeFilter = document.getElementById('typeFilter').value;
+
+        const filteredData = allRecords.filter(r => {
+            // Check Global Search
+            const searchableString = Object.values(r).join(" ").toLowerCase();
+            const matchesSearch = searchableString.includes(searchText);
+
+            // Check Dropdowns
+            const matchesStatus = statusFilter === "All" || r["Repair Status"] === statusFilter;
+            const matchesType = typeFilter === "All" || r["Item Type"] === typeFilter;
+
+            return matchesSearch && matchesStatus && matchesType;
+        });
+
+        renderTable(filteredData);
+    }
+
+    // Event Listeners for Filters
+    document.getElementById('searchInput').addEventListener('input', applyFilters);
+    document.getElementById('statusFilter').addEventListener('change', applyFilters);
+    document.getElementById('typeFilter').addEventListener('change', applyFilters);
+
+    // 4. Export to Excel Logic (using SheetJS)
+    function exportTableToExcel() {
+        // We grab the HTML table and convert it
+        let table = document.getElementById("recordsTable");
+        let workbook = XLSX.utils.table_to_book(table, { sheet: "Service Records" });
+        
+        // Generate file name with today's date
+        let today = new Date().toISOString().split('T')[0];
+        XLSX.writeFile(workbook, `Prostarm_Records_${today}.xlsx`);
+    }
+
+    // Initialize
+    fetchLiveRecords();
+
+</script>
+</body>
+</html>

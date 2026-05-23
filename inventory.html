@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prostarm - Inventory</title>
+    <link rel="icon" type="png" href="Prostarm logo.png">
+    <script>
+        if (sessionStorage.getItem('isLoggedIn') !== 'true' && localStorage.getItem('isLoggedIn') !== 'true') {
+            window.location.href = "login.html";
+        }
+    </script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #f4f6f9; padding: 30px 20px; color: #334155; }
+        .back-btn { display: inline-flex; padding: 10px 15px; background: #fff; border-radius: 8px; margin-bottom: 20px; border: 1px solid #cbd5e1; font-weight: 600; text-decoration: none; color: #475569; }
+        .card { background: #fff; padding: 25px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.04); max-width: 900px; margin: 0 auto; border-top: 4px solid #4f46e5; }
+        h2 { color: #1e293b; margin-bottom: 20px; }
+        input { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 1rem; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th, td { padding: 12px; border-bottom: 1px solid #e2e8f0; }
+        th { background: #f8fafc; color: #475569; text-transform: uppercase; font-size: 0.85rem; }
+        .stock-high { color: #10b981; font-weight: bold; }
+        .stock-low { color: #ef4444; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <a href="home.html" class="back-btn">⬅ Back to Home</a>
+    <div class="card">
+        <h2>📦 Spare Parts Inventory</h2>
+        <input type="text" id="searchBox" placeholder="Search by Part Code or Name..." onkeyup="filterInventory()">
+        <table id="inventoryTable">
+            <thead>
+                <tr>
+                    <th>Part Code</th>
+                    <th>Component Name</th>
+                    <th>Quantity Available</th>
+                </tr>
+            </thead>
+            <tbody id="inventoryBody">
+                <tr><td colspan="3" style="text-align:center;">⏳ Loading inventory...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        let inventoryData = [];
+
+        async function loadInventory() {
+            // REPLACE WITH YOUR NEW INVENTORY GET URL
+            const getInventoryUrl = "https://default000090a2d8654861ba6937e8e47451.72.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/691a42ec14ab4e33a5c75e7d203740b1/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=pAkE_ETJFLZXANkCWDItO12Jt5XP1W-bkeorb22Y-8c"; 
+            
+            try {
+                const response = await fetch(getInventoryUrl);
+                inventoryData = await response.json();
+                renderTable(inventoryData);
+            } catch (error) {
+                document.getElementById('inventoryBody').innerHTML = "<tr><td colspan='3' style='text-align:center; color:red;'>Failed to load live inventory.</td></tr>";
+            }
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('inventoryBody');
+            tbody.innerHTML = "";
+            data.forEach(item => {
+                let stockClass = parseInt(item.Quantity) > 5 ? "stock-high" : "stock-low";
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${item.PartCode}</strong></td>
+                        <td>${item.ComponentName}</td>
+                        <td class="${stockClass}">${item.Quantity} units</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function filterInventory() {
+            const query = document.getElementById('searchBox').value.toLowerCase();
+            const filtered = inventoryData.filter(i => 
+                (i.PartCode && i.PartCode.toLowerCase().includes(query)) || 
+                (i.ComponentName && i.ComponentName.toLowerCase().includes(query))
+            );
+            renderTable(filtered);
+        }
+
+        loadInventory();
+    </script>
+</body>
+</html>

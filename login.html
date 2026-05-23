@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prostarm - Portal Login</title>
+    <link rel="icon" type="png" href="Prostarm logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Base Reset & Background */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            /* Matches your index.html gradient */
+            background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%); 
+        }
+
+        /* The Main Card */
+        .login-wrapper {
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 380px;
+            text-align: center;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Logo & Header */
+        .logo-container img {
+            height: 45px;
+            margin-bottom: 15px;
+            object-fit: contain;
+        }
+        .login-wrapper h2 {
+            color: #1e293b;
+            font-size: 1.6rem;
+            margin-bottom: 5px;
+        }
+        .login-wrapper p {
+            color: #64748b;
+            font-size: 0.95rem;
+            margin-bottom: 30px;
+        }
+
+        /* Form Elements */
+        .input-group {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+        .input-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 8px;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 1rem;
+            color: #334155;
+            transition: all 0.2s ease;
+            background-color: #f8fafc;
+        }
+        .input-group input:focus {
+            outline: none;
+            border-color: #4f46e5;
+            background-color: #ffffff;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+        }
+
+        /* Submit Button */
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            transition: all 0.2s ease;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #4338ca;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+        button:active {
+            transform: translateY(1px);
+        }
+
+        /* Error Message Styling */
+        #error-msg { 
+            background-color: #fef2f2;
+            color: #ef4444; 
+            font-size: 0.9rem; 
+            font-weight: 600;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #fca5a5;
+            margin-bottom: 20px;
+            display: none; 
+            animation: shake 0.4s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-wrapper">
+    <div class="logo-container">
+        <img src="Prostarm-logo.png" alt="Prostarm Logo">
+    </div>
+    
+    <h2>Welcome Back</h2>
+    <p>Service Management Portal</p>
+    
+    <div id="error-msg">Invalid username or password!</div>
+
+    <form id="loginForm">
+        <div class="input-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" placeholder="Enter your username" required autocomplete="username">
+        </div>
+        
+        <div class="input-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" placeholder="Enter your password" required autocomplete="current-password">
+        </div>
+        
+        <button type="submit">Sign In</button>
+    </form>
+</div>
+
+<script>
+    document.getElementById('loginForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const inputUsername = document.getElementById('username').value;
+        const inputPassword = document.getElementById('password').value;
+        const errorMsg = document.getElementById('error-msg');
+        const loginBtn = document.querySelector('button[type="submit"]');
+
+        // ✅ Live Power Automate Login URL
+        const loginFlowUrl = "https://default000090a2d8654861ba6937e8e47451.72.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/a87f031f84bc442799055f58172f563e/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=WC42qgB-f5c_q7kz-RSR6SEa39lUp8kutiHNnbP5Wzk";
+
+        loginBtn.innerText = "Verifying...";
+        loginBtn.disabled = true;
+        errorMsg.style.display = "none";
+
+        fetch(loginFlowUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                inputUsername: inputUsername,
+                inputPassword: inputPassword
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success === true) {
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('currentUser', data.name);
+                localStorage.setItem('currentRole', data.role);
+                window.location.href = "home.html"; 
+            } else {
+                errorMsg.style.display = "block";
+                errorMsg.textContent = "Invalid username or password!";
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            errorMsg.style.display = "block";
+            errorMsg.textContent = "Network error connecting to the server.";
+        })
+        .finally(() => {
+            loginBtn.innerText = "Sign In";
+            loginBtn.disabled = false;
+        });
+    });
+</script>
+
+</body>
+</html>

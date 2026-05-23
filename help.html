@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prostarm - Help</title>
+    <script>
+        if (sessionStorage.getItem('isLoggedIn') !== 'true' && localStorage.getItem('isLoggedIn') !== 'true') {
+            window.location.href = "login.html";
+        }
+    </script>
+	
+	<link rel="icon" type="png" href="Prostarm logo.png">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: #f4f6f9; padding: 30px 20px; color: #334155; line-height: 1.6; }
+        .back-btn { display: inline-flex; padding: 10px 15px; background: #fff; border-radius: 8px; margin-bottom: 20px; border: 1px solid #cbd5e1; font-weight: 600; text-decoration: none; color: #475569; }
+        .card { background: #fff; padding: 35px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.04); max-width: 800px; margin: 0 auto; border-top: 4px solid #3b82f6; }
+        h2 { color: #1e293b; margin-bottom: 30px; display: flex; align-items: center; gap: 10px; }
+        .faq-item { margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #e2e8f0; }
+        .faq-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .faq-q { font-weight: 700; color: #1e293b; margin-bottom: 8px; font-size: 1.1rem; }
+        .faq-a { color: #475569; font-size: 0.95rem; }
+        .contact-box { background: #eff6ff; padding: 20px; border-radius: 10px; margin-top: 30px; text-align: center; border: 1px solid #bfdbfe; }
+    </style>
+</head>
+<body>
+    <a href="home.html" class="back-btn">⬅ Back to Home</a>
+    <div class="card">
+        <h2>❓ Help & Documentation</h2>
+        
+        <div class="faq-item">
+            <div class="faq-q">How do I edit a mistake on a Service Entry?</div>
+            <div class="faq-a">Navigate to the <strong>Engineer Jobs</strong> tab from the Home Menu. You will see a list of your past jobs. Click the blue "Edit" button next to the job, fix the error, and click "Save".</div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-q">Why does the Dashboard say "Offline"?</div>
+            <div class="faq-a">The dashboard pulls live data from the master cloud server. If it says Offline, check your phone's internet/data connection and refresh the page.</div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-q">I forgot my password or cannot log in.</div>
+            <div class="faq-a">If you are locked out, please contact the System Administrator to have your password reset in the master directory.</div>
+        </div>
+
+        <div class="contact-box">
+            <h3 style="color: #1e40af; margin-bottom: 10px;">Need Technical Support?</h3>
+            <p>Contact the MIS Department via internal email or call the IT helpdesk during standard business hours.</p>
+        </div>
+    </div>
+</body>
+</html>
