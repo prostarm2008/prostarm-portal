@@ -149,33 +149,39 @@
 
     form.addEventListener('submit', function(e) {
         e.preventDefault();
-        const index = parseInt(document.getElementById('editIndex').value);
-        
-        const newUser = {
-            name: document.getElementById('fullName').value,
-            username: document.getElementById('username').value,
-            password: document.getElementById('password').value,
-            role: document.getElementById('role').value
+        const btn = document.getElementById('submitBtn');
+        btn.innerText = "Saving to Cloud...";
+        btn.disabled = true;
+
+        const user = {
+            FullName: document.getElementById('fullName').value,
+            Username: document.getElementById('username').value,
+            Password: document.getElementById('password').value,
+            Role: document.getElementById('role').value
         };
         
-        let users = JSON.parse(localStorage.getItem("authorizedUsers")) || [];
-        
-        if (index > -1) {
-            users[index] = newUser; 
-        } else {
-            const exists = users.find(u => u.username === newUser.username);
-            if (exists) {
-                alert("Username already exists. Please choose another.");
-                return;
+        // PASTE YOUR NEW POST URL HERE
+        const updateUrl = "https://default000090a2d8654861ba6937e8e47451.72.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/540201f7145d46d58476e6a1e034393c/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=UP9yPbgyNl1FtEn__Vo6mcTxRecnPJMN3WyP1deVKFU";
+
+        fetch(updateUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(user)
+        })
+        .then(res => {
+            if(res.ok) {
+                alert("User saved successfully to Live Database!");
+                form.reset();
+                loadTable();
+            } else {
+                alert("Failed to save user.");
             }
-            users.push(newUser); 
-        }
-        
-        localStorage.setItem("authorizedUsers", JSON.stringify(users));
-        form.reset();
-        document.getElementById('editIndex').value = -1;
-        document.getElementById('submitBtn').innerText = "Save User";
-        loadTable();
+        })
+        .catch(() => alert("Network Error"))
+        .finally(() => {
+            btn.innerText = "Save User";
+            btn.disabled = false;
+        });
     });
 
     function editUser(index) {
