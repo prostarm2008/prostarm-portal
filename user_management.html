@@ -119,38 +119,43 @@
 
 <script>
     const form = document.getElementById('userForm');
-    
-    function loadTable() {
-        // Fetch exactly what is in localStorage
-        const users = JSON.parse(localStorage.getItem("authorizedUsers")) || [];
-        const tbody = document.querySelector("#userTable tbody");
-        tbody.innerHTML = "";
-        
-        users.forEach((user, index) => {
-            let roleClass = "role-engineer";
-            if (user.role === "Admin") roleClass = "role-admin";
-            if (user.role === "Manager") roleClass = "role-manager";
+    let currentUsers = []; 
+    let isEditing = false; // Define global flag
 
-            let roleHtml = `<span class="role-badge ${roleClass}">${user.role}</span>`;
+    async function loadTable() {
+        const tbody = document.querySelector("#userTable tbody");
+        tbody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>⏳ Loading users from cloud...</td></tr>";
+
+        const getUrl = "https://default000090a2d8654861ba6937e8e47451.72.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/561f681941094b9fab54891a04a42267/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=bLA4O5OkDBAtcI3nAwVjpxaFbCzeFQTD2ne2Lh7jqL0"; 
+
+        try {
+            const response = await fetch(getUrl);
+            currentUsers = await response.json(); 
+            tbody.innerHTML = "";
             
-            tbody.innerHTML += `
-                <tr>
-                    <td><strong>${user.name}</strong></td>
-                    <td>${user.username}</td>
-                    <td><span style="font-family: monospace; background: #e2e8f0; padding: 2px 6px; border-radius: 4px;">${user.password}</span></td>
-                    <td>${roleHtml}</td>
-                    <td class="action-cell">
-                        <button class="btn edit-btn" onclick="editUser(${index})">Edit</button>
-                        <button class="btn delete-btn" onclick="deleteUser(${index})">Delete</button>
-                    </td>
-                </tr>`;
-        });
+            currentUsers.forEach((user, index) => {
+                let roleClass = user.Role === "Admin" ? "role-admin" : (user.Role === "Manager" ? "role-manager" : "role-engineer");
+                
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${user.FullName}</strong></td>
+                        <td>${user.Username}</td>
+                        <td>${user.Password}</td>
+                        <td><span class="role-badge ${roleClass}">${user.Role}</span></td>
+                        <td class="action-cell">
+                            <button class="btn edit-btn" onclick="editUser(${index})">Edit</button>
+                        </td>
+                    </tr>`;
+            });
+        } catch (error) {
+            tbody.innerHTML = "<tr><td colspan='5' style='text-align:center; color:red;'>Failed to load users.</td></tr>";
+        }
     }
 
     form.addEventListener('submit', function(e) {
         e.preventDefault();
         const btn = document.getElementById('submitBtn');
-        btn.innerText = "Saving to Cloud...";
+        btn.innerText = "Saving...";
         btn.disabled = true;
 
         const user = {
@@ -160,7 +165,6 @@
             Role: document.getElementById('role').value
         };
         
-        // PASTE YOUR NEW POST URL HERE
         const updateUrl = "https://default000090a2d8654861ba6937e8e47451.72.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/540201f7145d46d58476e6a1e034393c/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=UP9yPbgyNl1FtEn__Vo6mcTxRecnPJMN3WyP1deVKFU";
 
         fetch(updateUrl, {
@@ -170,44 +174,34 @@
         })
         .then(res => {
             if(res.ok) {
-                alert("User saved successfully to Live Database!");
+                alert("Success!");
                 form.reset();
+                document.getElementById('username').readOnly = false; // Reset lock
+                document.getElementById('submitBtn').innerText = "Save User";
+                isEditing = false;
                 loadTable();
             } else {
-                alert("Failed to save user.");
+                alert("Failed to save.");
             }
         })
         .catch(() => alert("Network Error"))
         .finally(() => {
-            btn.innerText = "Save User";
             btn.disabled = false;
         });
     });
 
     function editUser(index) {
-        let users = JSON.parse(localStorage.getItem("authorizedUsers"));
-        let user = users[index];
-        
-        document.getElementById('editIndex').value = index;
-        document.getElementById('fullName').value = user.name;
-        document.getElementById('username').value = user.username;
-        document.getElementById('password').value = user.password;
-        document.getElementById('role').value = user.role;
-        
+        const user = currentUsers[index];
+        document.getElementById('fullName').value = user.FullName;
+        document.getElementById('username').value = user.Username;
+        document.getElementById('username').readOnly = true; // Lock ID during update
+        document.getElementById('password').value = user.Password;
+        document.getElementById('role').value = user.Role;
         document.getElementById('submitBtn').innerText = "Update User";
-        document.getElementById('userForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        isEditing = true;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    function deleteUser(index) {
-        if(confirm("Are you sure you want to delete this user? This cannot be undone.")) {
-            let users = JSON.parse(localStorage.getItem("authorizedUsers"));
-            users.splice(index, 1);
-            localStorage.setItem("authorizedUsers", JSON.stringify(users));
-            loadTable();
-        }
-    }
-
-    // Initial Load
     loadTable();
 </script>
 </body>
