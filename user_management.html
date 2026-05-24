@@ -120,11 +120,10 @@
 <script>
     const form = document.getElementById('userForm');
     let currentUsers = []; 
-    let isEditing = false; // Define global flag
 
     async function loadTable() {
         const tbody = document.querySelector("#userTable tbody");
-        tbody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>⏳ Loading users from cloud...</td></tr>";
+        tbody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>⏳ Loading users...</td></tr>";
 
         const getUrl = "https://default000090a2d8654861ba6937e8e47451.72.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/561f681941094b9fab54891a04a42267/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=bLA4O5OkDBAtcI3nAwVjpxaFbCzeFQTD2ne2Lh7jqL0"; 
 
@@ -134,18 +133,20 @@
             tbody.innerHTML = "";
             
             currentUsers.forEach((user, index) => {
-                let roleClass = user.Role === "Admin" ? "role-admin" : (user.Role === "Manager" ? "role-manager" : "role-engineer");
+                console.log("User Object:", user);
+				let roleClass = user.Role === "Admin" ? "role-admin" : (user.Role === "Manager" ? "role-manager" : "role-engineer");
                 
-                tbody.innerHTML += `
-                    <tr>
-                        <td><strong>${user.FullName}</strong></td>
-                        <td>${user.Username}</td>
-                        <td>${user.Password}</td>
-                        <td><span class="role-badge ${roleClass}">${user.Role}</span></td>
-                        <td class="action-cell">
-                            <button class="btn edit-btn" onclick="editUser(${index})">Edit</button>
-                        </td>
-                    </tr>`;
+                // Replace the current template literal in your loop with this:
+			tbody.innerHTML += `
+				<tr>
+					<td><strong>${user.FULLNAME || user.FullName || "N/A"}</strong></td> 
+					<td>${user.USERNAME || user.Username || "N/A"}</td>
+					<td>${user.PASSWORD || user.Password || "N/A"}</td>
+					<td><span class="role-badge ${roleClass}">${user.ROLE || user.Role || "N/A"}</span></td>
+					<td class="action-cell">
+						<button class="btn edit-btn" onclick="editUser(${index})">Edit</button>
+					</td>
+				</tr>`;
             });
         } catch (error) {
             tbody.innerHTML = "<tr><td colspan='5' style='text-align:center; color:red;'>Failed to load users.</td></tr>";
@@ -176,31 +177,28 @@
             if(res.ok) {
                 alert("Success!");
                 form.reset();
-                document.getElementById('username').readOnly = false; // Reset lock
+                document.getElementById('username').readOnly = false;
                 document.getElementById('submitBtn').innerText = "Save User";
-                isEditing = false;
                 loadTable();
             } else {
                 alert("Failed to save.");
             }
         })
         .catch(() => alert("Network Error"))
-        .finally(() => {
-            btn.disabled = false;
-        });
+        .finally(() => { btn.disabled = false; });
     });
 
-    function editUser(index) {
-        const user = currentUsers[index];
-        document.getElementById('fullName').value = user.FullName;
-        document.getElementById('username').value = user.Username;
-        document.getElementById('username').readOnly = true; // Lock ID during update
-        document.getElementById('password').value = user.Password;
-        document.getElementById('role').value = user.Role;
-        document.getElementById('submitBtn').innerText = "Update User";
-        isEditing = true;
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+			function editUser(index) {
+			const user = currentUsers[index];
+			// Use the same keys identified in the Console
+			document.getElementById('fullName').value = user.FULLNAME || user.FullName;
+			document.getElementById('username').value = user.USERNAME || user.Username;
+			document.getElementById('username').readOnly = true; 
+			document.getElementById('password').value = user.PASSWORD || user.Password;
+			document.getElementById('role').value = user.ROLE || user.Role;
+			document.getElementById('submitBtn').innerText = "Update User";
+			window.scrollTo({ top: 0, behavior: 'smooth' });
+		}
 
     loadTable();
 </script>
