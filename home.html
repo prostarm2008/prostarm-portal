@@ -105,30 +105,36 @@
 		/* Responsive Fixes */
 		@media (max-width: 900px) {
 			body { flex-direction: column; height: auto; }
+			/* Sidebar - Full width on mobile */
 			.sidebar { 
 				width: 100%; 
-				height: auto; 
-				flex-direction: row; 
-				flex-wrap: wrap;
+				height: auto; /* Changed from fixed height */
+				background: #1e293b; 
 				padding: 15px; 
-				gap: 10px;
 			}
+
+			/* Sidebar Navigation - Horizontal on mobile */
 			.sidebar nav { 
 				flex-direction: row; 
 				flex-wrap: wrap; 
-				margin-top: 0; 
-				width: 100%;
+				gap: 5px; 
+				margin-top: 10px;
 			}
-			.sidebar nav a { padding: 10px; font-size: 0.85rem; }
-			.main-content { overflow-y: visible; }
-			.dashboard-grid { grid-template-columns: 1fr 1fr; }
-		}
 
-		@media (max-width: 600px) {
-			.dashboard-grid { grid-template-columns: 1fr; }
-			.welcome-banner { margin: 10px; padding: 20px; }
+			.sidebar nav a { 
+				padding: 8px 10px; 
+				font-size: 0.8rem; 
+				flex: 1 1 45%; /* Makes items fit 2 per row */
+			}
+
+			/* Hide Sidebar Title on Mobile */
 			.sidebar h2 { display: none; }
-		}
+
+			/* Main Content - No scroll issues */
+			.main-content { 
+				width: 100%; 
+				overflow-x: hidden; 
+			}
 	</style>
 </head>
 
