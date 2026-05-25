@@ -11,6 +11,11 @@
         }
     </script>
     <style>
+		/* Action Buttons */
+        .action-cell { display: flex; gap: 8px; }
+        .btn-sm { padding: 6px 12px; border: none; border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: 0.2s; }
+        .edit-btn { background: #e0e7ff; color: #4f46e5; }
+        .edit-btn:hover { background: #c7d2fe; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background: #f4f6f9; padding: 30px 20px; color: #334155; }
         .back-btn { display: inline-flex; padding: 10px 15px; background: #fff; border-radius: 8px; margin-bottom: 20px; border: 1px solid #cbd5e1; font-weight: 600; text-decoration: none; color: #475569; }
@@ -55,7 +60,7 @@
                     <th>Part Code</th>
                     <th>Component Name</th>
                     <th>Quantity Available</th>
-                </tr>
+                    <th>Actions</th> </tr>
             </thead>
             <tbody id="inventoryBody">
                 <tr><td colspan="3" style="text-align:center;">⏳ Loading inventory...</td></tr>
@@ -89,7 +94,9 @@
         if(res.ok) {
             alert("Part saved successfully!");
             document.getElementById('inventoryForm').reset();
-            loadInventory(); // Refresh the table
+            document.getElementById('partCode').readOnly = false; // UNLOCK THE ID
+            document.getElementById('submitInvBtn').innerText = "Save Part"; // RESET BUTTON TEXT
+            loadInventory();
         } else {
             alert("Failed to save part.");
         }
@@ -122,12 +129,30 @@
                 let stockClass = parseInt(item.Quantity) > 5 ? "stock-high" : "stock-low";
                 tbody.innerHTML += `
                     <tr>
-                        <td><strong>${item.PartCode}</strong></td>
-                        <td>${item.ComponentName}</td>
-                        <td class="${stockClass}">${item.Quantity} units</td>
+                        <td><strong>${item.PartCode || ""}</strong></td>
+                        <td>${item.ComponentName || ""}</td>
+                        <td class="${stockClass}">${item.Quantity || 0} units</td>
+                        <td>
+                            <div class="action-cell">
+                                <button class="btn-sm edit-btn" onclick="editInventory('${item.PartCode}')">Edit</button>
+                            </div>
+                        </td>
                     </tr>
                 `;
             });
+        }
+
+        function editInventory(partCode) {
+            const part = inventoryData.find(p => p.PartCode === partCode);
+            if(!part) return;
+
+            document.getElementById('partCode').value = part.PartCode || "";
+            document.getElementById('partCode').readOnly = true; // Lock part code during update
+            document.getElementById('compName').value = part.ComponentName || "";
+            document.getElementById('qty').value = part.Quantity || 0;
+            
+            document.getElementById('submitInvBtn').innerText = "Update Part";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function filterInventory() {
