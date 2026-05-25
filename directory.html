@@ -25,6 +25,36 @@
 </head>
 <body>
     <a href="home.html" class="back-btn">⬅ Back to Home</a>
+	
+	<div class="card" style="border-top-color: #10b981;">
+    <h2>➕ Add / Update Customer</h2>
+    <form id="dirForm">
+        <div class="row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px;">
+            <div>
+                <label style="display: block; font-weight: 600; margin-bottom: 8px;">Serial Number</label>
+                <input type="text" id="serial" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;">
+            </div>
+            <div>
+                <label style="display: block; font-weight: 600; margin-bottom: 8px;">Customer Name</label>
+                <input type="text" id="custName" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;">
+            </div>
+            <div>
+                <label style="display: block; font-weight: 600; margin-bottom: 8px;">Site Address</label>
+                <input type="text" id="address" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;">
+            </div>
+            <div>
+                <label style="display: block; font-weight: 600; margin-bottom: 8px;">Contact Person</label>
+                <input type="text" id="contact" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;">
+            </div>
+            <div>
+                <label style="display: block; font-weight: 600; margin-bottom: 8px;">Phone Number</label>
+                <input type="text" id="phone" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;">
+            </div>
+        </div>
+        <button type="submit" id="submitDirBtn" style="width: 100%; padding: 14px 20px; background: #10b981; color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer;">Save Customer</button>
+    </form>
+</div>
+
     <div class="card">
         <h2>🏢 Customer & Site Directory</h2>
         <input type="text" id="searchBox" placeholder="Search by Serial Number, Customer, or City..." onkeyup="filterDirectory()">
@@ -47,6 +77,45 @@
     </div>
 
     <script>
+	
+	document.getElementById('dirForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('submitDirBtn');
+    btn.innerText = "Saving to Cloud...";
+    btn.disabled = true;
+
+    const dirData = {
+        SerialNumber: document.getElementById('serial').value,
+        CustomerName: document.getElementById('custName').value,
+        Address: document.getElementById('address').value,
+        ContactPerson: document.getElementById('contact').value,
+        Phone: document.getElementById('phone').value
+    };
+    
+    // REPLACE WITH YOUR NEW 'SAVE DIRECTORY' POST URL
+    const postDirUrl = "https://default000090a2d8654861ba6937e8e47451.72.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/399a8fada8964f09a7f93c6cc4c4ac9c/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=kn7vTDGuqCp1L-9qNbxpK4iz2hDuO-xaDuMIIPG6tMQ";
+
+    fetch(postDirUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dirData)
+    })
+    .then(res => {
+        if(res.ok) {
+            alert("Customer saved successfully!");
+            document.getElementById('dirForm').reset();
+            loadDirectory(); // Refresh the table
+        } else {
+            alert("Failed to save customer.");
+        }
+    })
+    .catch(() => alert("Network Error"))
+    .finally(() => {
+        btn.innerText = "Save Customer";
+        btn.disabled = false;
+    });
+});
+	
         let dirData = [];
 
         async function loadDirectory() {
