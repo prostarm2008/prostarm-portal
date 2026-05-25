@@ -11,6 +11,11 @@
         }
     </script>
     <style>
+		/* Action Buttons */
+        .action-cell { display: flex; gap: 8px; }
+        .btn-sm { padding: 6px 12px; border: none; border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: 0.2s; }
+        .edit-btn { background: #e0e7ff; color: #4f46e5; }
+        .edit-btn:hover { background: #c7d2fe; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { background: #f4f6f9; padding: 30px 20px; color: #334155; }
         .back-btn { display: inline-flex; padding: 10px 15px; background: #fff; border-radius: 8px; margin-bottom: 20px; border: 1px solid #cbd5e1; font-weight: 600; text-decoration: none; color: #475569; }
@@ -67,7 +72,7 @@
                         <th>Site Address</th>
                         <th>Contact Person</th>
                         <th>Phone Number</th>
-                    </tr>
+                        <th>Actions</th> </tr>
                 </thead>
                 <tbody id="dirBody">
                     <tr><td colspan="5" style="text-align:center;">⏳ Loading directory...</td></tr>
@@ -104,7 +109,9 @@
         if(res.ok) {
             alert("Customer saved successfully!");
             document.getElementById('dirForm').reset();
-            loadDirectory(); // Refresh the table
+            document.getElementById('serial').readOnly = false; // UNLOCK THE ID
+            document.getElementById('submitDirBtn').innerText = "Save Customer"; // RESET BUTTON TEXT
+            loadDirectory();
         } else {
             alert("Failed to save customer.");
         }
@@ -141,9 +148,30 @@
                         <td>${item.Address || ""}</td>
                         <td>${item.ContactPerson || ""}</td>
                         <td><a href="tel:${item.Phone}">${item.Phone || ""}</a></td>
+                        <td>
+                            <div class="action-cell">
+                                <button class="btn-sm edit-btn" onclick="editDirectory('${item.SerialNumber}')">Edit</button>
+                            </div>
+                        </td>
                     </tr>
                 `;
             });
+        }
+
+        function editDirectory(serial) {
+            // Find the correct customer from the array
+            const customer = dirData.find(c => c.SerialNumber === serial);
+            if(!customer) return;
+
+            document.getElementById('serial').value = customer.SerialNumber || "";
+            document.getElementById('serial').readOnly = true; // Lock the serial number so it updates instead of adding a new one
+            document.getElementById('custName').value = customer.CustomerName || "";
+            document.getElementById('address').value = customer.Address || "";
+            document.getElementById('contact').value = customer.ContactPerson || "";
+            document.getElementById('phone').value = customer.Phone || "";
+            
+            document.getElementById('submitDirBtn').innerText = "Update Customer";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function filterDirectory() {
